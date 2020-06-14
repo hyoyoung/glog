@@ -402,6 +402,11 @@ func init() {
 	flag.Var(&logging.stderrThreshold, "stderrthreshold", "logs at or above this threshold go to stderr")
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
+	flag.BoolVar(&logging.aFileLogging, "afilelogging", true, "log to a file")
+
+	if logging.aFileLogging {
+		severityName[infoLog] = "AFILE"
+	}
 
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
@@ -422,6 +427,7 @@ type loggingT struct {
 	// compatibility. TODO: does this matter enough to fix? Seems unlikely.
 	toStderr     bool // The -logtostderr flag.
 	alsoToStderr bool // The -alsologtostderr flag.
+	aFileLogging bool // The -afilelogging flag.
 
 	// Level flag. Handled atomically.
 	stderrThreshold severity // The -stderrthreshold flag.
@@ -691,18 +697,22 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 				l.exit(err)
 			}
 		}
-		switch s {
-		case fatalLog:
-			l.file[fatalLog].Write(data)
-			fallthrough
-		case errorLog:
-			l.file[errorLog].Write(data)
-			fallthrough
-		case warningLog:
-			l.file[warningLog].Write(data)
-			fallthrough
-		case infoLog:
+		if l.aFileLogging {
 			l.file[infoLog].Write(data)
+		} else {
+			switch s {
+			case fatalLog:
+				l.file[fatalLog].Write(data)
+				fallthrough
+			case errorLog:
+				l.file[errorLog].Write(data)
+				fallthrough
+			case warningLog:
+				l.file[warningLog].Write(data)
+				fallthrough
+			case infoLog:
+				l.file[infoLog].Write(data)
+			}
 		}
 	}
 	if s == fatalLog {
@@ -804,6 +814,7 @@ type syncBuffer struct {
 	*bufio.Writer
 	file   *os.File
 	sev    severity
+	aFlag  bool
 	nbytes uint64 // The number of bytes written to this file
 }
 
@@ -832,7 +843,11 @@ func (sb *syncBuffer) rotateFile(now time.Time) error {
 		sb.file.Close()
 	}
 	var err error
-	sb.file, _, err = create(severityName[sb.sev], now)
+	tag := severityName[sb.sev]
+	if sb.aFlag {
+		tag = "AFILE"
+	}
+	sb.file, _, err = create(tag, now)
 	sb.nbytes = 0
 	if err != nil {
 		return err
@@ -860,12 +875,16 @@ const bufferSize = 256 * 1024
 // l.mu is held.
 func (l *loggingT) createFiles(sev severity) error {
 	now := time.Now()
+	if l.aFileLogging {
+		sev = infoLog
+	}
 	// Files are created in decreasing severity order, so as soon as we find one
 	// has already been created, we can stop.
 	for s := sev; s >= infoLog && l.file[s] == nil; s-- {
 		sb := &syncBuffer{
 			logger: l,
 			sev:    s,
+			aFlag:  l.aFileLogging,
 		}
 		if err := sb.rotateFile(now); err != nil {
 			return err
