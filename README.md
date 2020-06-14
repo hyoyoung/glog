@@ -2,6 +2,7 @@
 
 It forked from [golang/glog](https://github.com/golang/glog).
 Also added a quick and dirty modification to log a file.
+
 golang/glog was for logging files by each severity levels.
 This glog is going make a only one file to log.
 
