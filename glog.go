@@ -810,7 +810,6 @@ type syncBuffer struct {
 	*bufio.Writer
 	file   *os.File
 	sev    severity
-	aFlag  bool
 	nbytes uint64 // The number of bytes written to this file
 }
 
