@@ -7,23 +7,19 @@ This glog is going make a only one file to log.
 
 ## Usage ##
 
-Set up the default logger to log the system log (event log or syslog) and a
-file, include a flag to turn up verbosity:
-
 ```go
 import (
   "flag"
 
-  "github.com/google/logger"
   "github.com/hyoyoung/glog"
 )
 
 func main() {
   flag.Parse()
 
-  glog.Info("I'm about to do something!")
+  glog.Info("info log message")
 
-  glog.Errorf("Error running doSomething: %v\n", "error")
+  glog.Error("error log message")
 }
 ```
 
