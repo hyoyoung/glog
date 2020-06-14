@@ -404,10 +404,6 @@ func init() {
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
 	flag.BoolVar(&logging.aFileLogging, "afilelogging", true, "log to a file")
 
-	if logging.aFileLogging {
-		severityName[infoLog] = "AFILE"
-	}
-
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
 
@@ -844,7 +840,7 @@ func (sb *syncBuffer) rotateFile(now time.Time) error {
 	}
 	var err error
 	tag := severityName[sb.sev]
-	if sb.aFlag {
+	if sb.logger.aFileLogging {
 		tag = "AFILE"
 	}
 	sb.file, _, err = create(tag, now)
@@ -884,7 +880,6 @@ func (l *loggingT) createFiles(sev severity) error {
 		sb := &syncBuffer{
 			logger: l,
 			sev:    s,
-			aFlag:  l.aFileLogging,
 		}
 		if err := sb.rotateFile(now); err != nil {
 			return err
