@@ -39,4 +39,4 @@ $ ./your_program -log_dir=./log
 | stderrthreshold  |         | logs at or above this threshold go to stderr                         |
 | vmodule          |         | comma-separated list of pattern=N settings for file-filtered logging |
 | log_backtrace_at |         | when logging hits line file:N, emit a stack trace                    |
-| afilelogging     | true    | log to a file                                                        |
+| singlefile       | true    | log to a single log file                                             |

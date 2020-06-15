@@ -49,6 +49,8 @@
 //	-log_dir=""
 //		Log files will be written to this directory instead of the
 //		default temporary directory.
+//	-singlefile=true
+//		Log to a single log file.
 //
 //	Other flags provide aids to debugging.
 //
@@ -402,7 +404,7 @@ func init() {
 	flag.Var(&logging.stderrThreshold, "stderrthreshold", "logs at or above this threshold go to stderr")
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
-	flag.BoolVar(&logging.aFileLogging, "afilelogging", true, "log to a file")
+	flag.BoolVar(&logging.singleFile, "singlefile", true, "log to a single log file")
 
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
@@ -423,7 +425,7 @@ type loggingT struct {
 	// compatibility. TODO: does this matter enough to fix? Seems unlikely.
 	toStderr     bool // The -logtostderr flag.
 	alsoToStderr bool // The -alsologtostderr flag.
-	aFileLogging bool // The -afilelogging flag.
+	singleFile   bool // The -singlefile flag.
 
 	// Level flag. Handled atomically.
 	stderrThreshold severity // The -stderrthreshold flag.
@@ -693,7 +695,7 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 				l.exit(err)
 			}
 		}
-		if l.aFileLogging {
+		if l.singleFile {
 			l.file[infoLog].Write(data)
 		} else {
 			switch s {
@@ -839,8 +841,8 @@ func (sb *syncBuffer) rotateFile(now time.Time) error {
 	}
 	var err error
 	tag := severityName[sb.sev]
-	if sb.logger.aFileLogging {
-		tag = "AFILE"
+	if sb.logger.singleFile {
+		tag = "ALL"
 	}
 	sb.file, _, err = create(tag, now)
 	sb.nbytes = 0
@@ -871,7 +873,7 @@ const bufferSize = 256 * 1024
 // l.mu is held.
 func (l *loggingT) createFiles(sev severity) error {
 	now := time.Now()
-	if l.aFileLogging {
+	if l.singleFile {
 		sev = infoLog
 	}
 	// Files are created in decreasing severity order, so as soon as we find one
