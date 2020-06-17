@@ -1,10 +1,10 @@
-# glog #
+# nlog #
 
 It forked from [golang/glog](https://github.com/golang/glog).
 Also added a quick and dirty modification to log a file.
 
 golang/glog was for logging files by each severity levels.
-This glog is going make a only one file to log.
+This nlog is going make a only one file to log.
 
 ## Usage ##
 
@@ -12,15 +12,15 @@ This glog is going make a only one file to log.
 import (
   "flag"
 
-  "github.com/hyoyoung/glog"
+  "github.com/hyoyoung/nlog"
 )
 
 func main() {
   flag.Parse()
 
-  glog.Info("info log message")
+  nlog.Info("info log message")
 
-  glog.Error("error log message")
+  nlog.Error("error log message")
 }
 ```
 

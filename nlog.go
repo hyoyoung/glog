@@ -14,23 +14,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package glog implements logging analogous to the Google-internal C++ INFO/ERROR/V setup.
+// Package nlog implements logging analogous to the Google-internal C++ INFO/ERROR/V setup.
 // It provides functions Info, Warning, Error, Fatal, plus formatting variants such as
 // Infof. It also provides V-style logging controlled by the -v and -vmodule=file=2 flags.
 //
 // Basic examples:
 //
-//	glog.Info("Prepare to repel boarders")
+//	nlog.Info("Prepare to repel boarders")
 //
-//	glog.Fatalf("Initialization failed: %s", err)
+//	nlog.Fatalf("Initialization failed: %s", err)
 //
 // See the documentation for the V function for an explanation of these examples:
 //
-//	if glog.V(2) {
-//		glog.Info("Starting transaction...")
+//	if nlog.V(2) {
+//		nlog.Info("Starting transaction...")
 //	}
 //
-//	glog.V(2).Infoln("Processed", nItems, "elements")
+//	nlog.V(2).Infoln("Processed", nItems, "elements")
 //
 // Log output is buffered and written periodically using Flush. Programs
 // should call Flush before exiting to guarantee all log output is written.
@@ -70,7 +70,7 @@
 //			-vmodule=gopher*=3
 //		sets the V level to 3 in all Go files whose names begin "gopher".
 //
-package glog
+package nlog
 
 import (
 	"bufio"
@@ -749,7 +749,7 @@ func (l *loggingT) output(s severity, buf *buffer, file string, line int, alsoTo
 
 // timeoutFlush calls Flush and returns when it completes or after timeout
 // elapses, whichever happens first.  This is needed because the hooks invoked
-// by Flush may deadlock when glog.Fatal is called from a hook that holds
+// by Flush may deadlock when nlog.Fatal is called from a hook that holds
 // a lock.
 func timeoutFlush(timeout time.Duration) {
 	done := make(chan bool, 1)
@@ -760,7 +760,7 @@ func timeoutFlush(timeout time.Duration) {
 	select {
 	case <-done:
 	case <-time.After(timeout):
-		fmt.Fprintln(os.Stderr, "glog: Flush took longer than", timeout)
+		fmt.Fprintln(os.Stderr, "nlog: Flush took longer than", timeout)
 	}
 }
 
@@ -1002,9 +1002,9 @@ type Verbose bool
 // The returned value is a boolean of type Verbose, which implements Info, Infoln
 // and Infof. These methods will write to the Info log if called.
 // Thus, one may write either
-//	if glog.V(2) { glog.Info("log this") }
+//	if nlog.V(2) { nlog.Info("log this") }
 // or
-//	glog.V(2).Info("log this")
+//	nlog.V(2).Info("log this")
 // The second form is shorter but the first is cheaper if logging is off because it does
 // not evaluate its arguments.
 //
